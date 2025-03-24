@@ -7,7 +7,6 @@ const {
   updateCredentialsHandler,
   requestResetPasswordHandler,
   resetPasswordHandler,
-  deleteHandler,
   logoutHandler,
   readAllHandler,
   refreshToken,
@@ -44,7 +43,6 @@ service.post("/api/v1/auth/login", loginHandler);
 service.post("/api/v1/auth", requestResetPasswordHandler);
 service.patch("/api/v1/auth/:id", resetPasswordHandler);
 service.put("/api/v1/auth", updateCredentialsHandler);
-service.delete("/api/v1/auth/:id", deleteHandler);
 service.delete("/api/v1/auth", logoutHandler);
 
 service.listen(port, (err) =>

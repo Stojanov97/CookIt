@@ -4,32 +4,34 @@ const ItemScheme = new mongoose.Schema(
   {
     name: { type: String, required: true },
     category: {
-      id: {
-        type: mongoose.SchemaTypes.ObjectId,
-        ref: "User",
-      },
-      name: {
-        type: String,
-        required: true,
-      },
+      type: String,
+      required: true,
+    },
+    ingredients: {
+      type: Array,
+      required: true,
+    },
+    instructions: {
+      type: String,
+      required: true,
     },
     By: {
       name: { type: String, required: true },
       id: {
         type: mongoose.SchemaTypes.ObjectId,
-        ref: "category",
+        ref: "User",
       },
     },
   },
   { timestamps: true }
 );
 
-const item = mongoose.model("item", ItemScheme, "Items");
+const recipe = mongoose.model("recipe", ItemScheme, "Recipes");
 
 const create = async (data) => {
   try {
-    let Item = new item(data);
-    return await Item.save();
+    let Recipe = new recipe(data);
+    return await Recipe.save();
   } catch (err) {
     throw new Error(err);
   }
@@ -37,7 +39,7 @@ const create = async (data) => {
 
 const read = async () => {
   try {
-    return await item.find();
+    return await recipe.find();
   } catch (err) {
     throw new Error(err);
   }
@@ -45,7 +47,7 @@ const read = async () => {
 
 const readByID = async (id) => {
   try {
-    return await item.findOne({ _id: id });
+    return await recipe.findOne({ _id: id });
   } catch (err) {
     throw new Error(err);
   }
@@ -53,15 +55,23 @@ const readByID = async (id) => {
 
 const readByUserID = async (id) => {
   try {
-    return await item.find({ "By.id": id });
+    return await recipe.find({ "By.id": id });
   } catch (err) {
     throw new Error(err);
   }
 };
 
-const readByCategory = async (id) => {
+const readByIngredients = async (ing) => {
   try {
-    return await item.find({ "category.id": id });
+    return await recipe.find({ ingredients: ing });
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
+const readByCategory = async (cat) => {
+  try {
+    return await recipe.find({ category: cat });
   } catch (err) {
     throw new Error(err);
   }
@@ -69,7 +79,7 @@ const readByCategory = async (id) => {
 
 const update = async (id, data) => {
   try {
-    return await item.updateOne({ _id: id }, data);
+    return await recipe.updateOne({ _id: id }, data);
   } catch (err) {
     throw new Error(err);
   }
@@ -77,15 +87,7 @@ const update = async (id, data) => {
 
 const remove = async (id) => {
   try {
-    return await item.deleteOne({ _id: id });
-  } catch (err) {
-    throw new Error(err);
-  }
-};
-
-const removeByCategory = async (id) => {
-  try {
-    return await item.deleteMany({ "category.id": id });
+    return await recipe.deleteOne({ _id: id });
   } catch (err) {
     throw new Error(err);
   }
@@ -96,8 +98,8 @@ module.exports = {
   read,
   readByID,
   readByUserID,
+  readByIngredients,
   readByCategory,
   update,
   remove,
-  removeByCategory,
 };

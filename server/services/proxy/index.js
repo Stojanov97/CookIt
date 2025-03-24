@@ -24,68 +24,17 @@ app.use(
 );
 
 app.use(
-  "/api/v1/categories",
-  proxy(`http://127.0.0.1:${config("CATEGORIES_SERVICE_PORT")}`, {
+  "/api/v1/recipes",
+  proxy(`http://127.0.0.1:${config("RECIPES_SERVICE_PORT")}`, {
     proxyReqPathResolver: (req) =>
-      `http://127.0.0.1:${config("CATEGORIES_SERVICE_PORT")}/api/v1/categories${
+      `http://127.0.0.1:${config("RECIPES_SERVICE_PORT")}/api/v1/recipes${
         req.url
       }`,
     limit: "35mb",
-  })
-);
-
-app.use(
-  "/api/v1/items",
-  proxy(`http://127.0.0.1:${config("ITEMS_SERVICE_PORT")}`, {
-    proxyReqPathResolver: (req) =>
-      `http://127.0.0.1:${config("ITEMS_SERVICE_PORT")}/api/v1/items${req.url}`,
-    limit: "35mb",
-  })
-);
-
-app.use(
-  "/api/v1/orders",
-  proxy(`http://127.0.0.1:${config("ORDERS_SERVICE_PORT")}`, {
-    proxyReqPathResolver: (req) =>
-      `http://127.0.0.1:${config("ORDERS_SERVICE_PORT")}/api/v1/orders${
-        req.url
-      }`,
-  })
-);
-
-app.use(
-  "/api/v1/suppliers",
-  proxy(`http://127.0.0.1:${config("SUPPLIERS_SERVICE_PORT")}`, {
-    proxyReqPathResolver: (req) =>
-      `http://127.0.0.1:${config("SUPPLIERS_SERVICE_PORT")}/api/v1/suppliers${
-        req.url
-      }`,
-  })
-);
-
-app.use(
-  "/api/v1/invoices",
-  proxy(`http://127.0.0.1:${config("INVOICES_SERVICE_PORT")}`, {
-    proxyReqPathResolver: (req) =>
-      `http://127.0.0.1:${config("INVOICES_SERVICE_PORT")}/api/v1/invoices${
-        req.url
-      }`,
-  })
-);
-
-app.use(
-  "/api/v1/socket",
-  proxy(`http://127.0.0.1:${config("SOCKET_SERVICE_PORT")}`, {
-    proxyReqPathResolver: (req) =>
-      `http://127.0.0.1:${config("SOCKET_SERVICE_PORT")}${req.url}`,
   })
 );
 
 // Serve the web app
-app.use("/", express.static(path.join(__dirname, "../../../web/build")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../../web/build", "index.html"));
-});
 const PORT = config("APP_PORT") || 3000;
 
 app.listen(PORT, (err) =>
