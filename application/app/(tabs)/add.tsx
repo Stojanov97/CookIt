@@ -1,10 +1,11 @@
 import { StyleSheet, Text, View } from "react-native";
 import React from "react";
+import { ThemedText } from "@/components/ThemedText";
 
 const add = () => {
   return (
     <View>
-      <Text>add</Text>
+      <ThemedText>Add</ThemedText>
     </View>
   );
 };

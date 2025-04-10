@@ -4,13 +4,33 @@ import { Platform } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { HapticTab } from "@/components/HapticTab";
-import { IconSymbol } from "@/components/ui/IconSymbol";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { Text } from "react-native";
+import { Redirect, Stack } from "expo-router";
 
-export default function TabLayout() {
+import { useSession } from "../../ctx";
+
+export default function AppLayout() {
+  // const [user, setUser] = useState<any>(null);
   const colorScheme = useColorScheme();
+  const { session, isLoading } = useSession();
+  if (isLoading) {
+    return <Text>Loading...</Text>;
+  }
+  if (session == null) {
+    return <Redirect href="/login" />;
+  }
+
+  // useEffect(() => {
+  //   if (session !== null) {
+  //     const parsedSession = JSON.parse(session);
+  //     setUser(parsedSession);
+  //     // console.log(parsedSession);
+  //   }
+  //   console.log(user);
+  // }, [session]);
 
   return (
     <Tabs
@@ -89,7 +109,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: `Riste`,
+          // title: `${user[1].lastName}`,
           headerTitleStyle: {
             fontSize: 22,
             fontFamily: "Boldonse",

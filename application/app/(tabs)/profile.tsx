@@ -2,6 +2,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Link } from "expo-router";
 import { StyleSheet, Pressable, ScrollView, View } from "react-native";
+import { useSession } from "../../ctx";
 
 const myRecipes: { id: string; name: string }[] = [
   // { id: "iausgdf1", name: "curry chicken" },
@@ -19,6 +20,8 @@ const myRecipes: { id: string; name: string }[] = [
 ];
 
 export default function AboutScreen() {
+  const { session } = useSession();
+  console.log(session);
   return (
     <View style={styles.container}>
       {myRecipes.length < 1 ? (
@@ -36,15 +39,17 @@ export default function AboutScreen() {
               backgroundColor: "orange",
               alignSelf: "center",
               margin: 15,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
               textAlign: "center",
-              verticalAlign: "middle",
+              boxSizing: "border-box",
+              padding: 17,
             }}
           >
             <ThemedText
-              style={{ ...styles.text, fontWeight: 900, fontSize: 22 }}
+              style={{
+                ...styles.text,
+                fontWeight: 900,
+                fontSize: 22,
+              }}
             >
               Add
             </ThemedText>
@@ -80,21 +85,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     margin: 10,
     fontFamily: "SpaceMono",
-  },
-  add: {
-    position: "absolute",
-    width: 60,
-    height: 60,
-    borderRadius: 50,
-    backgroundColor: "orange",
-    alignSelf: "flex-end",
-    margin: 15,
-    zIndex: 100,
-    bottom: -5,
-    right: -5,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
   },
   card: { height: 100, width: 330, backgroundColor: "blue", margin: 10 },
 });

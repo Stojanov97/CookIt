@@ -1,17 +1,50 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Pressable, TextInput } from "react-native";
 import React, { useState } from "react";
-import { Pressable, TextInput } from "react-native-gesture-handler";
 import { ThemedText } from "@/components/ThemedText";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
+import { ThemedView } from "@/components/ThemedView";
+import { useSession } from "../ctx";
+import { HOST_URL as host } from "@/constants/Host";
 
-const register = () => {
-  const [logged, setLogged] = useState<boolean>(false);
+const Register = () => {
+  const { signIn } = useSession();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [name, setName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
+
+  const register = async () => {
+    try {
+      await fetch(`${host}/api/v1/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          lastName,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          if (data.err) {
+            alert(data.err);
+          } else {
+            signIn(data.userData);
+            router.replace("/");
+          }
+        });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={{ ...styles.signIn, height: 350 }}>
+    <ThemedView style={styles.container}>
+      <View style={styles.signIn}>
         <ThemedText style={styles.header}>Register</ThemedText>
         <View style={styles.credentialCont}>
           <TextInput
@@ -20,7 +53,16 @@ const register = () => {
             onChange={(e) => {
               setName(e.nativeEvent.text);
             }}
-            placeholder="Full Name"
+            placeholder="Name"
+            placeholderTextColor={"black"}
+          />
+          <TextInput
+            style={styles.input}
+            value={lastName}
+            onChange={(e) => {
+              setLastName(e.nativeEvent.text);
+            }}
+            placeholder="Lastname"
             placeholderTextColor={"black"}
           />
           <TextInput
@@ -42,7 +84,20 @@ const register = () => {
             }}
             value={password}
           />
-          <Pressable style={styles.signBtn} onPress={() => setLogged(true)}>
+          <Pressable
+            style={styles.signBtn}
+            onPress={() => {
+              if (
+                email.length === 0 ||
+                password.length === 0 ||
+                name.length === 0
+              ) {
+                alert("Please fill in all fields");
+              } else {
+                register();
+              }
+            }}
+          >
             <ThemedText style={styles.text}>Register</ThemedText>
           </Pressable>
           <Link href="/login">
@@ -50,11 +105,11 @@ const register = () => {
           </Link>
         </View>
       </View>
-    </View>
+    </ThemedView>
   );
 };
 
-export default register;
+export default Register;
 
 const styles = StyleSheet.create({
   container: {
@@ -75,12 +130,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderRadius: 15,
-    height: 280,
+    height: 390,
   },
   header: {
     color: "white",
     fontSize: 35,
     fontWeight: "bold",
+    paddingTop: 15,
   },
   credentialCont: {
     paddingHorizontal: 20,
