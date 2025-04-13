@@ -15,20 +15,21 @@ import * as ImagePicker from "expo-image-picker";
 import ImageUploadOptions from "@/components/ImageUploadOptions";
 import { HOST_URL } from "@/constants/Host";
 import { useSession } from "@/ctx";
+import { useRouter } from "expo-router";
 
 const add = () => {
+  const router = useRouter();
   const { session } = useSession();
   let user: any;
   if (session !== null && typeof session === "string") {
     user = JSON.parse(session);
   }
-  const [file, setFile] = useState<any>();
   const [category, setCategory] = useState<string>("");
   const [name, setName] = useState<string>("");
   const [ingredients, setIngredients] = useState<string>("");
   const [instructions, setInstructions] = useState<string>("");
   const [showOptions, setShowOptions] = useState<boolean>(false);
-  const [image, setImage] = useState<string | undefined>();
+  const [image, setImage] = useState<string | undefined>(undefined);
   const uploadImage = async (mode: string | undefined) => {
     try {
       let result;
@@ -50,7 +51,7 @@ const add = () => {
         });
       }
       if (!result.canceled) {
-        setFile(result.assets[0]);
+        console.log(result);
         saveImage(result.assets[0].uri);
       }
     } catch (error) {
@@ -75,31 +76,35 @@ const add = () => {
       data.append("category", category);
       data.append("userID", user.id);
       data.append("userName", user.name);
-
-      // console.log(file);
-      // data.append("photo", file);
-      // if (image) {
-      //   const response = await fetch(image);
-      //   console.log(response);
-      //   const blob = await response.blob();
-      //   console.log(blob);
-      //   data.append(
-      //     "photo",
-      //     new File([blob], "product-img", { type: blob.type })
-      //   );
-      // }
+      if (image !== undefined) {
+        let file: any = {
+          uri: image,
+          name: image?.split("/").pop(),
+          type: `image/${image?.split(".").pop()}`,
+        };
+        data.append("photo", file);
+      }
       await fetch(`${HOST_URL}/api/v1/recipes`, {
         method: "POST",
         headers: {
           "Content-Type": "multipart/form-data",
         },
         body: data,
-      });
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setName("");
+            setCategory("");
+            setImage(undefined);
+            setIngredients("");
+            router.push("/(tabs)");
+          }
+        });
     } catch (error) {
       console.log(error);
     }
   };
-
   return (
     <View style={styles.container}>
       {showOptions && (

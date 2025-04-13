@@ -21,7 +21,7 @@ const {
 
 const createHandler = async (req, res) => {
   try {
-    console.log(req.files);
+    console.log(req);
     let data = {
       name: req.body.name,
       category: req.body.category,

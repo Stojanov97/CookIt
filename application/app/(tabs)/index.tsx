@@ -8,7 +8,7 @@ import {
 import { Image } from "expo-image";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Link } from "expo-router";
+import { Link, Stack, Tabs } from "expo-router";
 import { useEffect, useState } from "react";
 import { HOST_URL } from "@/constants/Host";
 
@@ -33,44 +33,60 @@ export default function HomeScreen() {
     })();
   }, []);
   return (
-    <View style={styles.container}>
-      {items.length === 0 ? (
-        <ThemedText style={styles.text}>Loading...</ThemedText>
-      ) : (
-        <ScrollView>
-          {items.map((item) => (
-            <ThemedView
-              key={item._id}
-              style={{
-                width: 320,
-                height: 140,
-                margin: 6,
-                position: "relative",
-              }}
-            >
-              <Image
-                style={styles.image}
-                source={`${HOST_URL}/api/v1/recipes/image/${item._id}`}
-                contentFit="cover"
-                transition={300}
-              />
-              <Link href={`../recipe?id=${item._id}`} style={styles.link}>
-                <ThemedText style={{ ...styles.text, color: "white" }}>
-                  {item.name}
-                </ThemedText>
-              </Link>
-            </ThemedView>
-          ))}
-        </ScrollView>
-      )}
-      <ThemedText
-        onPress={() => {
-          signOut();
-        }}
-      >
-        Sign Out
-      </ThemedText>
-    </View>
+    <>
+      <Tabs.Screen
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            console.log("🏠 Home tab was pressed");
+            // e.preventDefault(); // You can cancel the tab change
+          },
+          focus: () => {
+            console.log("🏠 Home screen is focused");
+          },
+          blur: () => {
+            console.log("🏠 Home screen lost focus");
+          },
+        })}
+      />
+      <View style={styles.container}>
+        {items.length === 0 ? (
+          <ThemedText style={styles.text}>Loading...</ThemedText>
+        ) : (
+          <ScrollView>
+            {items.map((item) => (
+              <ThemedView
+                key={item._id}
+                style={{
+                  width: 320,
+                  height: 140,
+                  margin: 6,
+                  position: "relative",
+                }}
+              >
+                <Image
+                  style={styles.image}
+                  source={`${HOST_URL}/api/v1/recipes/image/${item._id}`}
+                  contentFit="cover"
+                  transition={300}
+                />
+                <Link href={`../recipe?id=${item._id}`} style={styles.link}>
+                  <ThemedText style={{ ...styles.text, color: "white" }}>
+                    {item.name}
+                  </ThemedText>
+                </Link>
+              </ThemedView>
+            ))}
+          </ScrollView>
+        )}
+        <ThemedText
+          onPress={() => {
+            signOut();
+          }}
+        >
+          Sign Out
+        </ThemedText>
+      </View>
+    </>
   );
 }
 
