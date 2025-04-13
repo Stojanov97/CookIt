@@ -5,6 +5,7 @@ const {
   createHandler,
   readByCategoryHandler,
   readHandler,
+  readByIDHandler,
   readByIngredientsHandler,
   updateHandler,
   deleteHandler,
@@ -29,24 +30,19 @@ service.use(
       return req.cookies.token;
     },
   }).unless({
-    path: [
-      "/api/v1/recipes/recent",
-      "/api/v1/recipes/length",
-      /^\/api\/v1\/recipes\/category\/.*/,
-      /^\/api\/v1\/recipes\/image\/.*/,
-      { url: "/api/v1/recipes/", method: "GET" },
-    ],
+    path: [/^\/api\/v1\/recipes\/.*/],
   })
 );
 
 service.get("/api/v1/recipes", readHandler);
-service.get("/api/v1/recipes/length", getLength);
+service.get("/api/v1/recipes/:id", readByIDHandler);
+service.get("/api/v1/recipes/length/:id", getLength);
 service.get("/api/v1/recipes/image/:id", getImage);
 service.get("/api/v1/recipes/category/:category", readByCategoryHandler);
 service.get("/api/v1/recipes/ingredient/:ing", readByIngredientsHandler);
 service.post("/api/v1/recipes", createHandler);
-service.patch("/api/v1/recipes/:id", updateHandler);
-service.delete("/api/v1/recipes/:id", deleteHandler);
+service.patch("/api/v1/recipes/:id/:user", updateHandler);
+service.delete("/api/v1/recipes/:id/:user", deleteHandler);
 
 service.listen(port, (err) =>
   err ? console.log(err) : console.log("Recipes service started successfully")

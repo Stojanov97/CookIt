@@ -21,13 +21,13 @@ const {
 
 const createHandler = async (req, res) => {
   try {
-    const { name, id } = req.auth;
+    console.log(req.files);
     let data = {
       name: req.body.name,
       category: req.body.category,
       instructions: req.body.instructions,
-      ingredients: req.body.ingredients,
-      By: { id: id, name: name },
+      ingredients: JSON.parse(req.body.ingredients),
+      By: { id: req.body.userID, name: req.body.userName },
     };
     await validate(data, ItemCreate);
     let recipe = await create(data);
@@ -59,6 +59,26 @@ const readHandler = async (req, res) => {
       .json({ success: false, err: err.error || "Internal server error" });
   }
 };
+
+const readByIDHandler = async (req, res) => {
+  try {
+    let { id } = req.params;
+    let recipe = await readByID(id);
+    let photos = await downloadByID("recipe", id);
+    recipe = {
+      ...recipe._doc,
+      ...{
+        photo: photos || false,
+      },
+    };
+    return await res.json(recipe);
+  } catch (err) {
+    return res
+      .status(err.code || 500)
+      .json({ success: false, err: err.error || "Internal server error" });
+  }
+};
+
 const readByCategoryHandler = async (req, res) => {
   try {
     let { category } = req.params;
@@ -103,16 +123,15 @@ const readByIngredientsHandler = async (req, res) => {
 const updateHandler = async (req, res) => {
   try {
     let recipe = await readByID(id);
-    const { username, id: userID } = req.auth;
-    if (userID !== recipe.By.id)
+    const { user, id } = req.params;
+    if (user !== recipe.By.id)
       throw { code: 401, error: "You can't tinker with this recipe" };
-    const { id } = req.params;
     let data = {
       name: req.body.name,
       category: req.body.category,
       instructions: req.body.instructions,
       ingredients: req.body.ingredients,
-      By: { id: userID, name: username },
+      By: { id: user },
     };
     await validate(data, ItemUpdate);
     req.files && updateFile(req.files.photo, "recipe", id);
@@ -130,11 +149,10 @@ const updateHandler = async (req, res) => {
 
 const deleteHandler = async (req, res) => {
   try {
+    const { id, user } = req.params;
     let recipe = await readByID(id);
-    const { id: userID } = req.auth;
-    if (userID !== recipe.By.id)
+    if (user !== recipe.By.id)
       throw { code: 401, error: "You can't tinker with this recipe" };
-    const { id } = req.params;
     await remove(id);
     await removeFile("recipe", id);
     return await res.json({ success: true });
@@ -162,8 +180,8 @@ const getImage = async (req, res) => {
 
 const getLength = async (req, res) => {
   try {
-    const { id } = req.auth;
-    return res.json(await readByUserID(id)).length();
+    const { id } = req.params;
+    return res.json(await readByUserID(id));
   } catch (err) {
     return res
       .status(err.code || 500)
@@ -174,6 +192,7 @@ const getLength = async (req, res) => {
 module.exports = {
   createHandler,
   readHandler,
+  readByIDHandler,
   updateHandler,
   deleteHandler,
   readByCategoryHandler,

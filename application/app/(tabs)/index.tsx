@@ -14,23 +14,6 @@ import { HOST_URL } from "@/constants/Host";
 
 import { useSession } from "../../ctx";
 
-const items = [
-  { _id: "iausgdf1", name: "test1" },
-  { _id: "iausgdf2", name: "test2" },
-  { _id: "iausgdf3", name: "test3" },
-  { _id: "iausgdf4", name: "test4" },
-  { _id: "iausgdf12", name: "test1" },
-  { _id: "iausgdf22", name: "test2" },
-  { _id: "iausgdf32", name: "test3" },
-  { _id: "iausgdf42", name: "test4" },
-  { _id: "iausgdf13", name: "test1" },
-  { _id: "iausgdf23", name: "test2" },
-  { _id: "iausgdf33", name: "test3" },
-  { _id: "iausgdf43", name: "test4" },
-];
-const blurhash =
-  "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
-
 export default function HomeScreen() {
   const { signOut } = useSession();
   const [items, setItems] = useState<
@@ -43,11 +26,7 @@ export default function HomeScreen() {
           .then((res) => res.json())
           .then((data) => {
             setItems(data);
-            // console.log(data);
           });
-        // await fetch(`${HOST_URL}/api/v1/recipes/image/67e08e017fbf428078608c09`)
-        //   .then((data) => data.blob())
-        //   .then((data) => console.log(data));
       } catch (error) {
         console.log(error);
       }
@@ -67,22 +46,18 @@ export default function HomeScreen() {
                 height: 140,
                 margin: 6,
                 position: "relative",
-                // backgroundColor: "blue",
-                backgroundRepeat: "no-repeat",
-                backgroundSize: "cover",
-                // backgroundBlendMode: "darken",
-                // backgroundColor: "rgba(0, 0, 0, 0.5)",
               }}
             >
               <Image
                 style={styles.image}
                 source={`${HOST_URL}/api/v1/recipes/image/${item._id}`}
-                placeholder={{ blurhash }}
                 contentFit="cover"
-                // transition={1000}
+                transition={300}
               />
-              <Link href={`./recipe?id=${item._id}`} style={styles.link}>
-                <ThemedText style={styles.text}>{item.name}</ThemedText>
+              <Link href={`../recipe?id=${item._id}`} style={styles.link}>
+                <ThemedText style={{ ...styles.text, color: "white" }}>
+                  {item.name}
+                </ThemedText>
               </Link>
             </ThemedView>
           ))}
@@ -90,7 +65,6 @@ export default function HomeScreen() {
       )}
       <ThemedText
         onPress={() => {
-          // The `app/(app)/_layout.tsx` will redirect to the sign-in screen.
           signOut();
         }}
       >
@@ -109,7 +83,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     fontFamily: "SpaceMono",
-    color: "#fff",
     textTransform: "uppercase",
   },
   link: {

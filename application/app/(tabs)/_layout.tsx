@@ -8,29 +8,23 @@ import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { Text } from "react-native";
-import { Redirect, Stack } from "expo-router";
+import { Redirect } from "expo-router";
 
 import { useSession } from "../../ctx";
 
 export default function AppLayout() {
-  // const [user, setUser] = useState<any>(null);
   const colorScheme = useColorScheme();
   const { session, isLoading } = useSession();
+  let user: any;
+  if (session !== null && typeof session === "string") {
+    user = JSON.parse(session);
+  }
   if (isLoading) {
     return <Text>Loading...</Text>;
   }
   if (session == null) {
     return <Redirect href="/login" />;
   }
-
-  // useEffect(() => {
-  //   if (session !== null) {
-  //     const parsedSession = JSON.parse(session);
-  //     setUser(parsedSession);
-  //     // console.log(parsedSession);
-  //   }
-  //   console.log(user);
-  // }, [session]);
 
   return (
     <Tabs
@@ -109,7 +103,7 @@ export default function AppLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          // title: `${user[1].lastName}`,
+          title: `${user.name}`,
           headerTitleStyle: {
             fontSize: 22,
             fontFamily: "Boldonse",

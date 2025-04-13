@@ -26,7 +26,6 @@ export default function Login() {
       })
         .then((response) => response.json())
         .then((data) => {
-          // console.log(data);
           if (data.err) {
             alert(data.err);
           } else {
