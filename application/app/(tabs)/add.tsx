@@ -1,9 +1,9 @@
 import {
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from "react-native";
 import { useState } from "react";
@@ -16,10 +16,14 @@ import ImageUploadOptions from "@/components/ImageUploadOptions";
 import { HOST_URL } from "@/constants/Host";
 import { useSession } from "@/ctx";
 import { useRouter } from "expo-router";
+import { useGlobal } from "@/GlobalContext";
 
 const add = () => {
   const router = useRouter();
   const { session } = useSession();
+  const { checkDB, setCheckDB } = useGlobal();
+  console.log(checkDB);
+  const colorScheme = useColorScheme();
   let user: any;
   if (session !== null && typeof session === "string") {
     user = JSON.parse(session);
@@ -39,7 +43,7 @@ const add = () => {
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: true,
           aspect: [4, 3],
-          quality: 1,
+          quality: 0.8,
         });
       } else {
         await ImagePicker.requestCameraPermissionsAsync();
@@ -47,7 +51,7 @@ const add = () => {
           cameraType: ImagePicker.CameraType.back,
           allowsEditing: true,
           aspect: [4, 3],
-          quality: 1,
+          quality: 0.8,
         });
       }
       if (!result.canceled) {
@@ -70,37 +74,48 @@ const add = () => {
   const addHandler = async () => {
     try {
       let data = new FormData();
-      data.append("name", name);
-      data.append("ingredients", JSON.stringify(ingredients.split(" ")));
-      data.append("instructions", instructions);
-      data.append("category", category);
-      data.append("userID", user.id);
-      data.append("userName", user.name);
-      if (image !== undefined) {
-        let file: any = {
-          uri: image,
-          name: image?.split("/").pop(),
-          type: `image/${image?.split(".").pop()}`,
-        };
-        data.append("photo", file);
+      if (
+        name == "" ||
+        ingredients == "" ||
+        instructions == "" ||
+        category == ""
+      ) {
+        return alert("Please fill all the fields!");
+      } else {
+        data.append("name", name);
+        data.append("ingredients", JSON.stringify(ingredients.split(", ")));
+        data.append("instructions", instructions);
+        data.append("category", category);
+        data.append("userID", user.id);
+        data.append("userName", user.name);
+        if (image !== undefined) {
+          let file: any = {
+            uri: image,
+            name: image?.split("/").pop(),
+            type: `image/${image?.split(".").pop()}`,
+          };
+          data.append("photo", file);
+        }
+        await fetch(`${HOST_URL}/api/v1/recipes`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          body: data,
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log(data);
+            if (data["success"] === true) {
+              setName("");
+              setCategory("");
+              setImage(undefined);
+              setIngredients("");
+              setCheckDB(!checkDB);
+              router.push("/(tabs)");
+            }
+          });
       }
-      await fetch(`${HOST_URL}/api/v1/recipes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        body: data,
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            setName("");
-            setCategory("");
-            setImage(undefined);
-            setIngredients("");
-            router.push("/(tabs)");
-          }
-        });
     } catch (error) {
       console.log(error);
     }
@@ -118,7 +133,12 @@ const add = () => {
         <ThemedText style={styles.text}>Add your new recipe</ThemedText>
         <ThemedText style={styles.text2}>Recipe Name:</ThemedText>
         <TextInput
-          style={styles.input}
+          style={
+            colorScheme == "dark"
+              ? { ...styles.input, color: "white" }
+              : styles.input
+          }
+          placeholderTextColor={colorScheme == "dark" ? "#bfbfbf" : "#000"}
           value={name}
           onChange={(e) => setName(e.nativeEvent.text)}
           placeholder="Enter the name of the recipe"
@@ -126,7 +146,11 @@ const add = () => {
         <ThemedText style={styles.text2}>Select a category:</ThemedText>
         <View style={{ ...styles.input, margin: 0, paddingBlock: 0 }}>
           <Picker
-            style={{ padding: 0, margin: 0 }}
+            style={
+              colorScheme == "dark"
+                ? { padding: 0, margin: 0, color: "#bfbfbf" }
+                : { padding: 0, margin: 0 }
+            }
             selectedValue={category}
             onValueChange={(itemValue, itemIndex) => setCategory(itemValue)}
           >
@@ -144,11 +168,14 @@ const add = () => {
           value={ingredients}
           onChange={(e: any) => setIngredients(e.nativeEvent.text)}
           containerStyle={{ ...styles.textareaContainer, height: 100 }}
-          style={{ ...styles.textarea1, height: 90 }}
-          maxLength={240}
-          placeholder={
-            "Enter the ingredients needed, use BLANK SPACE to separate"
+          style={
+            colorScheme == "dark"
+              ? { ...styles.textarea1, height: 90, color: "white" }
+              : styles.textarea1
           }
+          placeholderTextColor={colorScheme == "dark" ? "#bfbfbf" : "#000"}
+          maxLength={240}
+          placeholder={"Enter the ingredients needed, use (, ) to separate"}
           underlineColorAndroid={"transparent"}
         />
         <ThemedText style={styles.text2}>Instructions:</ThemedText>
@@ -156,7 +183,12 @@ const add = () => {
           value={instructions}
           onChange={(e: any) => setInstructions(e.nativeEvent.text)}
           containerStyle={styles.textareaContainer}
-          style={styles.textarea1}
+          style={
+            colorScheme == "dark"
+              ? { ...styles.textarea1, color: "white" }
+              : styles.textarea1
+          }
+          placeholderTextColor={colorScheme == "dark" ? "#bfbfbf" : "#000"}
           maxLength={1000}
           placeholder={"Enter your instructions here"}
           underlineColorAndroid={"transparent"}

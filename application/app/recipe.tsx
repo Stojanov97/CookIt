@@ -1,14 +1,17 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Link, router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSession } from "../ctx";
 import { HOST_URL } from "@/constants/Host";
 import { Image } from "expo-image";
+import { useGlobal } from "@/GlobalContext";
+import placeholder from "@/assets/images/placeholder.jpg";
 
 const recipe = () => {
   const { session } = useSession();
+  const { checkDB, setCheckDB } = useGlobal();
   let user: any;
   if (session !== null && typeof session === "string") {
     user = JSON.parse(session);
@@ -21,6 +24,7 @@ const recipe = () => {
     By: { id: string; name: string };
     instructions: string;
     category: string;
+    photo: string | boolean;
   } | null>(null);
   const [admin, setAdmin] = useState(false);
   useEffect(() => {
@@ -40,7 +44,7 @@ const recipe = () => {
         console.log(error);
       }
     })();
-  }, []);
+  }, [checkDB]);
 
   const deleteHandler = async () => {
     try {
@@ -49,12 +53,18 @@ const recipe = () => {
         headers: {
           "Content-Type": "application/json",
         },
-      });
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data["success"] === true) {
+            setCheckDB(!checkDB);
+            router.push("/(tabs)");
+          }
+        });
     } catch (err) {
       console.log(err);
     }
   };
-
   return (
     <>
       <Stack.Screen options={{ title: recipe?.name }} />
@@ -67,7 +77,11 @@ const recipe = () => {
               </ThemedText>
               <Image
                 style={styles.image}
-                source={`${HOST_URL}/api/v1/recipes/image/${recipe?._id}`}
+                source={
+                  recipe?.photo
+                    ? `${HOST_URL}/api/v1/recipes/image/${recipe?._id}`
+                    : placeholder
+                }
                 contentFit="cover"
                 transition={300}
               />
@@ -86,6 +100,7 @@ const recipe = () => {
                     style={{ ...styles.text, fontSize: 16, fontWeight: 400 }}
                   >
                     {item}
+                    {", "}
                   </ThemedText>
                 ))}
               </View>
@@ -106,14 +121,22 @@ const recipe = () => {
                   marginVertical: 20,
                 }}
               >
-                <Pressable style={{ ...styles.btn, backgroundColor: "red" }}>
+                <Pressable
+                  style={{ ...styles.btn, backgroundColor: "red" }}
+                  onPress={deleteHandler}
+                >
                   <Text
                     style={{ ...styles.text, fontWeight: 400, color: "#fff" }}
                   >
                     Delete
                   </Text>
                 </Pressable>
-                <Pressable style={{ ...styles.btn, backgroundColor: "green" }}>
+                <Pressable
+                  onPress={() => {
+                    router.push(`../edit?id=${recipe?._id}`);
+                  }}
+                  style={{ ...styles.btn, backgroundColor: "green" }}
+                >
                   <Text
                     style={{ ...styles.text, fontWeight: 400, color: "#fff" }}
                   >
@@ -129,7 +152,11 @@ const recipe = () => {
               </ThemedText>
               <Image
                 style={styles.image}
-                source={`${HOST_URL}/api/v1/recipes/image/${recipe?._id}`}
+                source={
+                  recipe?.photo
+                    ? `${HOST_URL}/api/v1/recipes/image/${recipe?._id}`
+                    : placeholder
+                }
                 contentFit="cover"
                 transition={300}
               />
@@ -178,16 +205,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     fontFamily: "SpaceMono",
-  },
-  link: {
-    width: "100%",
-    height: "100%",
-    padding: 15,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    textAlign: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   image: {
     width: 400,

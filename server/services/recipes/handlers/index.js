@@ -21,7 +21,6 @@ const {
 
 const createHandler = async (req, res) => {
   try {
-    console.log(req);
     let data = {
       name: req.body.name,
       category: req.body.category,
@@ -122,16 +121,17 @@ const readByIngredientsHandler = async (req, res) => {
 
 const updateHandler = async (req, res) => {
   try {
-    let recipe = await readByID(id);
+    console.log("here");
     const { user, id } = req.params;
+    let recipe = await readByID(id);
     if (user !== recipe.By.id)
       throw { code: 401, error: "You can't tinker with this recipe" };
     let data = {
       name: req.body.name,
       category: req.body.category,
       instructions: req.body.instructions,
-      ingredients: req.body.ingredients,
-      By: { id: user },
+      ingredients: JSON.parse(req.body.ingredients),
+      By: { id: req.body.userID, name: req.body.userName },
     };
     await validate(data, ItemUpdate);
     req.files && updateFile(req.files.photo, "recipe", id);
@@ -151,6 +151,7 @@ const deleteHandler = async (req, res) => {
   try {
     const { id, user } = req.params;
     let recipe = await readByID(id);
+    console.log(recipe);
     if (user !== recipe.By.id)
       throw { code: 401, error: "You can't tinker with this recipe" };
     await remove(id);
@@ -181,7 +182,17 @@ const getImage = async (req, res) => {
 const getLength = async (req, res) => {
   try {
     const { id } = req.params;
-    return res.json(await readByUserID(id));
+    let recipes = await readByUserID(id);
+    let photos = await downloadAll("recipe");
+    recipes = recipes.map((recipe) => {
+      return {
+        ...recipe._doc,
+        ...{
+          photo: photos.find(({ id }) => recipe._doc._id == id) || false,
+        },
+      };
+    });
+    return res.json(recipes);
   } catch (err) {
     return res
       .status(err.code || 500)

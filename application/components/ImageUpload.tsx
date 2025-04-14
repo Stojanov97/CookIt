@@ -2,7 +2,6 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React from "react";
 import { Image } from "expo-image";
 import placeholder from "@/assets/images/placeholder.jpg";
-let uri = "";
 
 interface ImageUploadProps {
   show(): any;
@@ -13,7 +12,10 @@ const ImageUpload = ({ show, uri }: ImageUploadProps) => {
   return (
     <>
       <TouchableOpacity onPress={() => show()}>
-        <Image source={uri ? { uri } : placeholder} style={styles.image} />
+        <Image
+          source={uri != undefined ? { uri } : placeholder}
+          style={styles.image}
+        />
       </TouchableOpacity>
     </>
   );

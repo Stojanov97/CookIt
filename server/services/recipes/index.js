@@ -41,7 +41,7 @@ service.get("/api/v1/recipes/image/:id", getImage);
 service.get("/api/v1/recipes/category/:category", readByCategoryHandler);
 service.get("/api/v1/recipes/ingredient/:ing", readByIngredientsHandler);
 service.post("/api/v1/recipes", createHandler);
-service.patch("/api/v1/recipes/:id/:user", updateHandler);
+service.put("/api/v1/recipes/:id/:user", updateHandler);
 service.delete("/api/v1/recipes/:id/:user", deleteHandler);
 
 service.listen(port, (err) =>

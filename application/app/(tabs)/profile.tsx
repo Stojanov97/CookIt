@@ -6,10 +6,13 @@ import { useSession } from "../../ctx";
 import { HOST_URL } from "@/constants/Host";
 import { useEffect, useState } from "react";
 import { Image } from "expo-image";
+import placeholder from "@/assets/images/placeholder.jpg";
 
 export default function AboutScreen() {
-  const { session } = useSession();
-  const [recipes, setRecipes] = useState<{ _id: string; name: string }[]>([]);
+  const { session, signOut } = useSession();
+  const [recipes, setRecipes] = useState<
+    { _id: string; name: string; photo: string | boolean }[]
+  >([]);
   let user: any;
   if (session !== null && typeof session === "string") {
     user = JSON.parse(session);
@@ -76,7 +79,11 @@ export default function AboutScreen() {
               >
                 <Image
                   style={styles.image}
-                  source={`${HOST_URL}/api/v1/recipes/image/${recipe._id}`}
+                  source={
+                    recipe?.photo
+                      ? `${HOST_URL}/api/v1/recipes/image/${recipe?._id}`
+                      : placeholder
+                  }
                   contentFit="cover"
                   transition={300}
                 />
@@ -88,6 +95,13 @@ export default function AboutScreen() {
           </ScrollView>
         </>
       )}
+      <ThemedText
+        onPress={() => {
+          signOut();
+        }}
+      >
+        Sign Out
+      </ThemedText>
     </View>
   );
 }

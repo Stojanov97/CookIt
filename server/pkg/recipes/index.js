@@ -18,8 +18,8 @@ const ItemScheme = new mongoose.Schema(
     By: {
       name: { type: String, required: true },
       id: {
-        type: mongoose.SchemaTypes.ObjectId,
-        ref: "User",
+        type: String,
+        required: true,
       },
     },
   },

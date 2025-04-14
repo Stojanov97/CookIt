@@ -8,8 +8,9 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
-import { Slot, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import { SessionProvider } from "../ctx";
+import { GlobalProvider } from "../GlobalContext";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 
@@ -34,37 +35,39 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <SessionProvider>
-        <Stack>
-          <Stack.Screen
-            name="(tabs)"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="recipe"
-            options={{
-              headerShown: true,
-              title: "Recipe",
-            }}
-          />
-          <Stack.Screen
-            name="register"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="login"
-            options={{
-              headerShown: false,
-            }}
-          />
-        </Stack>
-      </SessionProvider>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <GlobalProvider>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <SessionProvider>
+          <Stack>
+            <Stack.Screen
+              name="(tabs)"
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="recipe"
+              options={{
+                headerShown: true,
+                title: "Recipe",
+              }}
+            />
+            <Stack.Screen
+              name="register"
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="login"
+              options={{
+                headerShown: false,
+              }}
+            />
+          </Stack>
+        </SessionProvider>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </GlobalProvider>
   );
 }

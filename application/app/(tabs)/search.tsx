@@ -4,28 +4,52 @@ import React, { useEffect, useState } from "react";
 import { Link } from "expo-router";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-
-const items = [
-  { id: "iausgdf1", name: "curry chicken" },
-  { id: "iausgdf2", name: "pesto pasta" },
-  { id: "iausgdf3", name: "pizza" },
-  { id: "iausgdf4", name: "Pancakes" },
-  { id: "iausgdf12", name: "parmesan" },
-  { id: "iausgdf22", name: "pastramajlija" },
-  { id: "iausgdf32", name: "pita" },
-  { id: "iausgdf42", name: "burek" },
-  { id: "iausgdf13", name: "kebab" },
-  { id: "iausgdf23", name: "chicken wings" },
-  { id: "iausgdf33", name: "pizza Burger" },
-  { id: "iausgdf43", name: "Chicken burger" },
-];
+import { HOST_URL } from "@/constants/Host";
+import { useGlobal } from "@/GlobalContext";
+import { Image } from "expo-image";
+import placeholder from "@/assets/images/placeholder.jpg";
 
 const search = () => {
   const [search, setSearch] = useState<string>("");
-  const [recipes, setRecipes] = useState(items);
+  const [recipes, setRecipes] = useState<
+    {
+      name: string;
+      _id: string;
+      ingredients: string[];
+      instructions: string;
+      category: string;
+      photo: string | boolean;
+    }[]
+  >([]);
+  const [items, setItems] = useState<
+    {
+      name: string;
+      _id: string;
+      ingredients: string[];
+      instructions: string;
+      category: string;
+      photo: string | boolean;
+    }[]
+  >([]);
+  const { checkDB, setCheckDB } = useGlobal();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await fetch(`${HOST_URL}/api/v1/recipes`)
+          .then((res) => res.json())
+          .then((data) => {
+            setItems(data);
+          });
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, [checkDB]);
+
   useEffect(() => {
     setRecipes(
-      items.filter((item) =>
+      items.filter((item: { name: string }) =>
         item.name.toLowerCase().includes(search.toLowerCase())
       )
     );
@@ -59,19 +83,29 @@ const search = () => {
           ) : (
             recipes.map((item) => (
               <ThemedView
-                key={item.id}
+                key={item._id}
                 style={{
                   width: 320,
                   height: 140,
-                  backgroundColor: "blue",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
                   margin: 6,
+                  position: "relative",
                 }}
               >
-                <Link href={`/recipe?id=${item.id}`}>Link</Link>
-                <ThemedText style={styles.text}>{item.name}</ThemedText>
+                <Image
+                  style={styles.image}
+                  source={
+                    item?.photo
+                      ? `${HOST_URL}/api/v1/recipes/image/${item?._id}`
+                      : placeholder
+                  }
+                  contentFit="cover"
+                  transition={300}
+                />
+                <Link href={`../recipe?id=${item._id}`} style={styles.link}>
+                  <ThemedText style={{ ...styles.text, color: "white" }}>
+                    {item.name}
+                  </ThemedText>
+                </Link>
               </ThemedView>
             ))
           )}
@@ -102,5 +136,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     alignItems: "center",
+  },
+  image: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: "100%",
+    backgroundColor: "#0553",
+  },
+  link: {
+    width: "100%",
+    height: "100%",
+    padding: 15,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 });

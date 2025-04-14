@@ -35,7 +35,6 @@ export default function ImageUploadOptions({ upload, hide, remove }: props) {
           borderRadius: 10,
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "#fff",
         }}
       >
         <ThemedText
