@@ -10,7 +10,10 @@ import { Image } from "expo-image";
 import placeholder from "@/assets/images/placeholder.jpg";
 
 const search = () => {
+  // State to store the search input value
   const [search, setSearch] = useState<string>("");
+
+  // State to store filtered recipes based on the search input
   const [recipes, setRecipes] = useState<
     {
       name: string;
@@ -21,6 +24,8 @@ const search = () => {
       photo: string | boolean;
     }[]
   >([]);
+
+  // State to store all fetched recipes
   const [items, setItems] = useState<
     {
       name: string;
@@ -31,22 +36,26 @@ const search = () => {
       photo: string | boolean;
     }[]
   >([]);
+
+  // Global context for database check
   const { checkDB, setCheckDB } = useGlobal();
 
+  // Fetch recipes from the API when the component mounts or `checkDB` changes
   useEffect(() => {
     (async () => {
       try {
         await fetch(`${HOST_URL}/api/v1/recipes`)
           .then((res) => res.json())
           .then((data) => {
-            setItems(data);
+            setItems(data); // Store fetched recipes in `items`
           });
       } catch (error) {
-        console.log(error);
+        console.log(error); // Log any errors during the fetch
       }
     })();
   }, [checkDB]);
 
+  // Filter recipes based on the search input
   useEffect(() => {
     setRecipes(
       items.filter((item: { name: string }) =>
@@ -54,8 +63,10 @@ const search = () => {
       )
     );
   }, [search]);
+
   return (
     <View style={styles.container}>
+      {/* Search input container with shadow styling */}
       <ThemedView
         style={{
           ...styles.input,
@@ -63,24 +74,31 @@ const search = () => {
             " rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.04) 0px 10px 10px -5px",
         }}
       >
+        {/* Search icon */}
         <Ionicons name={"search"} color="black" size={20} />
+        {/* Search input field */}
         <TextInput
           placeholder="Search"
           style={{ outline: "none", width: 260, color: "black" }}
           value={search}
           placeholderTextColor={"black"}
-          onChange={(e) => setSearch(e.nativeEvent.text)}
+          onChange={(e) => setSearch(e.nativeEvent.text)} // Update search state on input change
         ></TextInput>
       </ThemedView>
+
+      {/* Display message or search results */}
       {search.length < 1 ? (
+        // Message when no search input is provided
         <ThemedText style={styles.text}>
           Search for your favorite meal!
         </ThemedText>
       ) : (
         <ScrollView>
+          {/* Message when no results are found */}
           {recipes.length < 1 ? (
             <ThemedText style={styles.text}>No results</ThemedText>
           ) : (
+            // Render filtered recipes
             recipes.map((item) => (
               <ThemedView
                 key={item._id}
@@ -91,19 +109,21 @@ const search = () => {
                   position: "relative",
                 }}
               >
+                {/* Recipe image */}
                 <Image
                   style={styles.image}
                   source={
                     item?.photo
-                      ? `${HOST_URL}/api/v1/recipes/image/${item?._id}`
-                      : placeholder
+                      ? `${HOST_URL}/api/v1/recipes/image/${item?._id}` // Use recipe photo if available
+                      : placeholder // Use placeholder image if no photo
                   }
                   contentFit="cover"
                   transition={300}
                 />
+                {/* Link to recipe details */}
                 <Link href={`../recipe?id=${item._id}`} style={styles.link}>
                   <ThemedText style={{ ...styles.text, color: "white" }}>
-                    {item.name}
+                    {item.name} {/* Recipe name */}
                   </ThemedText>
                 </Link>
               </ThemedView>
@@ -120,22 +140,22 @@ export default search;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
+    alignItems: "center", // Center content horizontally
   },
   text: {
-    fontFamily: "SpaceMono",
+    fontFamily: "SpaceMono", // Custom font for text
   },
   input: {
     width: 320,
     height: 40,
-    backgroundColor: "white",
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    margin: 10,
+    backgroundColor: "white", // White background for input
+    borderRadius: 10, // Rounded corners
+    paddingHorizontal: 15, // Horizontal padding
+    margin: 10, // Margin around the input
     display: "flex",
-    flexDirection: "row",
-    gap: 10,
-    alignItems: "center",
+    flexDirection: "row", // Align items in a row
+    gap: 10, // Space between children
+    alignItems: "center", // Center items vertically
   },
   image: {
     position: "absolute",
@@ -143,17 +163,17 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    width: "100%",
-    backgroundColor: "#0553",
+    width: "100%", // Full width
+    backgroundColor: "#0553", // Fallback background color
   },
   link: {
     width: "100%",
     height: "100%",
-    padding: 15,
+    padding: 15, // Padding inside the link
     display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    textAlign: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center", // Center content vertically
+    alignItems: "center", // Center content horizontally
+    textAlign: "center", // Center text
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
   },
 });

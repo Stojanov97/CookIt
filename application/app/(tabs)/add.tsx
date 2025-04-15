@@ -19,25 +19,28 @@ import { useRouter } from "expo-router";
 import { useGlobal } from "@/GlobalContext";
 
 const add = () => {
-  const router = useRouter();
-  const { session } = useSession();
-  const { checkDB, setCheckDB } = useGlobal();
+  const router = useRouter(); // Router for navigation
+  const { session } = useSession(); // Get user session
+  const { checkDB, setCheckDB } = useGlobal(); // Global state for database check
   console.log(checkDB);
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme(); // Detect light/dark mode
   let user: any;
   if (session !== null && typeof session === "string") {
-    user = JSON.parse(session);
+    user = JSON.parse(session); // Parse session to get user data
   }
-  const [category, setCategory] = useState<string>("");
-  const [name, setName] = useState<string>("");
-  const [ingredients, setIngredients] = useState<string>("");
-  const [instructions, setInstructions] = useState<string>("");
-  const [showOptions, setShowOptions] = useState<boolean>(false);
-  const [image, setImage] = useState<string | undefined>(undefined);
+  const [category, setCategory] = useState<string>(""); // State for recipe category
+  const [name, setName] = useState<string>(""); // State for recipe name
+  const [ingredients, setIngredients] = useState<string>(""); // State for ingredients
+  const [instructions, setInstructions] = useState<string>(""); // State for instructions
+  const [showOptions, setShowOptions] = useState<boolean>(false); // State for image upload options visibility
+  const [image, setImage] = useState<string | undefined>(undefined); // State for uploaded image
+
   const uploadImage = async (mode: string | undefined) => {
+    // Function to handle image upload (camera/gallery)
     try {
       let result;
       if (mode === "gallery") {
+        // Request gallery permissions and open gallery
         await ImagePicker.requestMediaLibraryPermissionsAsync();
         result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -46,6 +49,7 @@ const add = () => {
           quality: 0.8,
         });
       } else {
+        // Request camera permissions and open camera
         await ImagePicker.requestCameraPermissionsAsync();
         result = await ImagePicker.launchCameraAsync({
           cameraType: ImagePicker.CameraType.back,
@@ -56,22 +60,26 @@ const add = () => {
       }
       if (!result.canceled) {
         console.log(result);
-        saveImage(result.assets[0].uri);
+        saveImage(result.assets[0].uri); // Save image URI
       }
     } catch (error) {
       console.log(error);
-      setShowOptions(false);
+      setShowOptions(false); // Hide options on error
     }
   };
+
   const saveImage = async (image: any) => {
+    // Save image URI to state
     try {
       setImage(image);
-      setShowOptions(false);
+      setShowOptions(false); // Hide options after saving
     } catch (error) {
       console.log(error);
     }
   };
+
   const addHandler = async () => {
+    // Function to handle adding a new recipe
     try {
       let data = new FormData();
       if (
@@ -80,15 +88,17 @@ const add = () => {
         instructions == "" ||
         category == ""
       ) {
-        return alert("Please fill all the fields!");
+        return alert("Please fill all the fields!"); // Validate input fields
       } else {
+        // Append form data
         data.append("name", name);
-        data.append("ingredients", JSON.stringify(ingredients.split(", ")));
+        data.append("ingredients", JSON.stringify(ingredients.split(", "))); // Convert ingredients to array
         data.append("instructions", instructions);
         data.append("category", category);
-        data.append("userID", user.id);
-        data.append("userName", user.name);
+        data.append("userID", user.id); // Add user ID
+        data.append("userName", user.name); // Add user name
         if (image !== undefined) {
+          // Add image if available
           let file: any = {
             uri: image,
             name: image?.split("/").pop(),
@@ -96,6 +106,7 @@ const add = () => {
           };
           data.append("photo", file);
         }
+        // Send POST request to server
         await fetch(`${HOST_URL}/api/v1/recipes`, {
           method: "POST",
           headers: {
@@ -107,11 +118,12 @@ const add = () => {
           .then((data) => {
             console.log(data);
             if (data["success"] === true) {
+              // Reset form and navigate back on success
               setName("");
               setCategory("");
               setImage(undefined);
               setIngredients("");
-              setCheckDB(!checkDB);
+              setCheckDB(!checkDB); // Trigger global state update
               router.push("/(tabs)");
             }
           });
@@ -120,9 +132,11 @@ const add = () => {
       console.log(error);
     }
   };
+
   return (
     <View style={styles.container}>
       {showOptions && (
+        // Show image upload options if enabled
         <ImageUploadOptions
           upload={uploadImage}
           hide={() => setShowOptions(false)}
@@ -140,7 +154,7 @@ const add = () => {
           }
           placeholderTextColor={colorScheme == "dark" ? "#bfbfbf" : "#000"}
           value={name}
-          onChange={(e) => setName(e.nativeEvent.text)}
+          onChange={(e) => setName(e.nativeEvent.text)} // Update recipe name
           placeholder="Enter the name of the recipe"
         />
         <ThemedText style={styles.text2}>Select a category:</ThemedText>
@@ -152,7 +166,7 @@ const add = () => {
                 : { padding: 0, margin: 0 }
             }
             selectedValue={category}
-            onValueChange={(itemValue, itemIndex) => setCategory(itemValue)}
+            onValueChange={(itemValue, itemIndex) => setCategory(itemValue)} // Update category
           >
             <Picker.Item label="--Select Category--" value="" />
             <Picker.Item label="Main Dish" value="main-dish" />
@@ -161,12 +175,12 @@ const add = () => {
           </Picker>
         </View>
         <ThemedText style={styles.text2}>Upload a photo:</ThemedText>
-        <ImageUpload show={() => setShowOptions(true)} uri={image} />
-
+        <ImageUpload show={() => setShowOptions(true)} uri={image} />{" "}
+        {/* Image upload component */}
         <ThemedText style={styles.text2}>Ingredients:</ThemedText>
         <Textarea
           value={ingredients}
-          onChange={(e: any) => setIngredients(e.nativeEvent.text)}
+          onChange={(e: any) => setIngredients(e.nativeEvent.text)} // Update ingredients
           containerStyle={{ ...styles.textareaContainer, height: 100 }}
           style={
             colorScheme == "dark"
@@ -181,7 +195,7 @@ const add = () => {
         <ThemedText style={styles.text2}>Instructions:</ThemedText>
         <Textarea
           value={instructions}
-          onChange={(e: any) => setInstructions(e.nativeEvent.text)}
+          onChange={(e: any) => setInstructions(e.nativeEvent.text)} // Update instructions
           containerStyle={styles.textareaContainer}
           style={
             colorScheme == "dark"
@@ -205,7 +219,7 @@ const add = () => {
             boxSizing: "border-box",
             padding: 17,
           }}
-          onPress={() => addHandler()}
+          onPress={() => addHandler()} // Trigger addHandler on button press
         >
           <ThemedText
             style={{

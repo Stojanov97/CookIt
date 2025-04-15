@@ -1,4 +1,3 @@
-const config = require("../../../pkg/config").get;
 const {
   create,
   read,
@@ -8,198 +7,217 @@ const {
   readByIngredients,
   update,
   remove,
-} = require("../../../pkg/recipes");
-const { ItemCreate, ItemUpdate } = require("../../../pkg/recipes/validate");
-const { validate } = require("../../../pkg/validator");
+} = require("../../../pkg/recipes"); // Import recipe-related operations
+const { ItemCreate, ItemUpdate } = require("../../../pkg/recipes/validate"); // Import validation schemas for recipes
+const { validate } = require("../../../pkg/validator"); // Import validation utility
 const {
   upload,
   downloadAll,
   updateFile,
   removeFile,
   downloadByID,
-} = require("../../../pkg/files");
+} = require("../../../pkg/files"); // Import file handling utilities
 
+// Handler to create a new recipe
 const createHandler = async (req, res) => {
   try {
+    // Prepare recipe data from request body
     let data = {
       name: req.body.name,
       category: req.body.category,
       instructions: req.body.instructions,
-      ingredients: JSON.parse(req.body.ingredients),
-      By: { id: req.body.userID, name: req.body.userName },
+      ingredients: JSON.parse(req.body.ingredients), // Parse ingredients from JSON string
+      By: { id: req.body.userID, name: req.body.userName }, // User info
     };
-    await validate(data, ItemCreate);
-    let recipe = await create(data);
-    req.files && upload(req.files.photo, "recipe", recipe._id);
-    return await res.json({ success: true });
+    await validate(data, ItemCreate); // Validate recipe data
+    let recipe = await create(data); // Save recipe to database
+    req.files && upload(req.files.photo, "recipe", recipe._id); // Upload photo if provided
+    return await res.json({ success: true }); // Respond with success
   } catch (err) {
+    // Handle errors
     return res
       .status(err.code || 500)
       .json({ success: false, err: err.error || "Internal server error" });
   }
 };
 
+// Handler to fetch all recipes
 const readHandler = async (req, res) => {
   try {
-    let recipes = await read();
-    let photos = await downloadAll("recipe");
+    let recipes = await read(); // Fetch all recipes
+    let photos = await downloadAll("recipe"); // Fetch all recipe photos
     recipes = recipes.map((recipe) => {
       return {
-        ...recipe._doc,
+        ...recipe._doc, // Merge recipe data
         ...{
-          photo: photos.find(({ id }) => recipe._doc._id == id) || false,
+          photo: photos.find(({ id }) => recipe._doc._id == id) || false, // Attach photo if available
         },
       };
     });
-    return await res.json(recipes);
+    return await res.json(recipes); // Respond with recipes
   } catch (err) {
+    // Handle errors
     return res
       .status(err.code || 500)
       .json({ success: false, err: err.error || "Internal server error" });
   }
 };
 
+// Handler to fetch a recipe by its ID
 const readByIDHandler = async (req, res) => {
   try {
-    let { id } = req.params;
-    let recipe = await readByID(id);
-    let photos = await downloadByID("recipe", id);
+    let { id } = req.params; // Extract recipe ID from request params
+    let recipe = await readByID(id); // Fetch recipe by ID
+    let photos = await downloadByID("recipe", id); // Fetch photo for the recipe
     recipe = {
-      ...recipe._doc,
+      ...recipe._doc, // Merge recipe data
       ...{
-        photo: photos || false,
+        photo: photos || false, // Attach photo if available
       },
     };
-    return await res.json(recipe);
+    return await res.json(recipe); // Respond with recipe
   } catch (err) {
+    // Handle errors
     return res
       .status(err.code || 500)
       .json({ success: false, err: err.error || "Internal server error" });
   }
 };
 
+// Handler to fetch recipes by category
 const readByCategoryHandler = async (req, res) => {
   try {
-    let { category } = req.params;
-    let recipes = await readByCategory(category);
-    let photos = await downloadAll("recipe");
+    let { category } = req.params; // Extract category from request params
+    let recipes = await readByCategory(category); // Fetch recipes by category
+    let photos = await downloadAll("recipe"); // Fetch all recipe photos
     recipes = recipes.map((recipe) => {
       return {
-        ...recipe._doc,
+        ...recipe._doc, // Merge recipe data
         ...{
-          photo: photos.find(({ id }) => recipe._doc._id == id) || false,
+          photo: photos.find(({ id }) => recipe._doc._id == id) || false, // Attach photo if available
         },
       };
     });
-    return await res.json(recipes);
+    return await res.json(recipes); // Respond with recipes
   } catch (err) {
-    return res
-      .status(err.code || 500)
-      .json({ success: false, err: err.error || "Internal server error" });
-  }
-};
-const readByIngredientsHandler = async (req, res) => {
-  try {
-    let { ing } = req.params;
-    let recipes = await readByIngredients(ing);
-    let photos = await downloadAll("recipe");
-    recipes = recipes.map((recipe) => {
-      return {
-        ...recipe._doc,
-        ...{
-          photo: photos.find(({ id }) => recipe._doc._id == id) || false,
-        },
-      };
-    });
-    return await res.json(recipes);
-  } catch (err) {
+    // Handle errors
     return res
       .status(err.code || 500)
       .json({ success: false, err: err.error || "Internal server error" });
   }
 };
 
+// Handler to fetch recipes by ingredients
+const readByIngredientsHandler = async (req, res) => {
+  try {
+    let { ing } = req.params; // Extract ingredient from request params
+    let recipes = await readByIngredients(ing); // Fetch recipes by ingredient
+    let photos = await downloadAll("recipe"); // Fetch all recipe photos
+    recipes = recipes.map((recipe) => {
+      return {
+        ...recipe._doc, // Merge recipe data
+        ...{
+          photo: photos.find(({ id }) => recipe._doc._id == id) || false, // Attach photo if available
+        },
+      };
+    });
+    return await res.json(recipes); // Respond with recipes
+  } catch (err) {
+    // Handle errors
+    return res
+      .status(err.code || 500)
+      .json({ success: false, err: err.error || "Internal server error" });
+  }
+};
+
+// Handler to update a recipe
 const updateHandler = async (req, res) => {
   try {
-    console.log("here");
-    const { user, id } = req.params;
-    let recipe = await readByID(id);
+    const { user, id } = req.params; // Extract user ID and recipe ID from request params
+    let recipe = await readByID(id); // Fetch recipe by ID
     if (user !== recipe.By.id)
-      throw { code: 401, error: "You can't tinker with this recipe" };
+      throw { code: 401, error: "You can't tinker with this recipe" }; // Check if user is authorized
     let data = {
       name: req.body.name,
       category: req.body.category,
       instructions: req.body.instructions,
-      ingredients: JSON.parse(req.body.ingredients),
-      By: { id: req.body.userID, name: req.body.userName },
+      ingredients: JSON.parse(req.body.ingredients), // Parse ingredients from JSON string
+      By: { id: req.body.userID, name: req.body.userName }, // User info
     };
-    await validate(data, ItemUpdate);
-    req.files && updateFile(req.files.photo, "recipe", id);
+    await validate(data, ItemUpdate); // Validate updated recipe data
+    req.files && updateFile(req.files.photo, "recipe", id); // Update photo if provided
     if (req.body.removePhoto === "true") {
-      await removeFile("recipe", id);
+      await removeFile("recipe", id); // Remove photo if requested
     }
-    await update(id, data);
-    return await res.json({ success: true });
+    await update(id, data); // Update recipe in database
+    return await res.json({ success: true }); // Respond with success
   } catch (err) {
+    // Handle errors
     return res
       .status(err.code || 500)
       .json({ success: false, err: err.error || "Internal server error" });
   }
 };
 
+// Handler to delete a recipe
 const deleteHandler = async (req, res) => {
   try {
-    const { id, user } = req.params;
-    let recipe = await readByID(id);
-    console.log(recipe);
+    const { id, user } = req.params; // Extract recipe ID and user ID from request params
+    let recipe = await readByID(id); // Fetch recipe by ID
     if (user !== recipe.By.id)
-      throw { code: 401, error: "You can't tinker with this recipe" };
-    await remove(id);
-    await removeFile("recipe", id);
-    return await res.json({ success: true });
+      throw { code: 401, error: "You can't tinker with this recipe" }; // Check if user is authorized
+    await remove(id); // Remove recipe from database
+    await removeFile("recipe", id); // Remove associated photo
+    return await res.json({ success: true }); // Respond with success
   } catch (err) {
+    // Handle errors
     return res
       .status(err.code || 500)
       .json({ success: false, err: err.error || "Internal server error" });
   }
 };
 
+// Handler to fetch a recipe's image
 const getImage = async (req, res) => {
   try {
-    const path = await downloadByID("recipe", req.params.id);
+    const path = await downloadByID("recipe", req.params.id); // Fetch image path by recipe ID
     return await res.sendFile(path, (err) => {
       if (err) {
-        console.log(err);
+        console.log(err); // Log errors if any
       }
     });
   } catch (err) {
+    // Handle errors
     return res
       .status(err.code || 500)
       .json({ success: false, err: err.error || "Internal server error" });
   }
 };
 
+// Handler to fetch recipes created by a specific user
 const getLength = async (req, res) => {
   try {
-    const { id } = req.params;
-    let recipes = await readByUserID(id);
-    let photos = await downloadAll("recipe");
+    const { id } = req.params; // Extract user ID from request params
+    let recipes = await readByUserID(id); // Fetch recipes by user ID
+    let photos = await downloadAll("recipe"); // Fetch all recipe photos
     recipes = recipes.map((recipe) => {
       return {
-        ...recipe._doc,
+        ...recipe._doc, // Merge recipe data
         ...{
-          photo: photos.find(({ id }) => recipe._doc._id == id) || false,
+          photo: photos.find(({ id }) => recipe._doc._id == id) || false, // Attach photo if available
         },
       };
     });
-    return res.json(recipes);
+    return res.json(recipes); // Respond with recipes
   } catch (err) {
+    // Handle errors
     return res
       .status(err.code || 500)
       .json({ success: false, err: err.error || "Internal server error" });
   }
 };
 
+// Export all handlers
 module.exports = {
   createHandler,
   readHandler,
